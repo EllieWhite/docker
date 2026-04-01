@@ -1,42 +1,42 @@
-import fs from 'fs/promises';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url'
-import chalk from 'chalk'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-
-const notesPath = join(__dirname, 'db.json')
+import chalk from 'chalk';
+import Note from './models/Note.js';
 
 
-async function addNote(title) {
-    const notes = await getNotes()
-    const note = {
-        title,
-        id: Date.now().toString()
-    }
-
-    notes.push(note)
-
-    await fs.writeFile(notesPath, JSON.stringify(notes))
+const addNote = async (title, owner) =>  {
+    await Note.create({ title, owner })
     console.log(chalk.green.inverse('Note wass Added'))
 }
 
-addNote('Test')
-
-async function getNotes() {
-    const notes = await fs.readFile(notesPath, { encoding: 'utf-8'})
-    return Array.isArray(JSON.parse(notes)) ? JSON.parse(notes) : []
+const getNotes = async () => {
+    const notes = await Note.find();
+    console.log(notes)
+    return notes;
 }
 
-async function printNotes() {
+const printNotes = async () =>  {
     const notes = await getNotes()
     console.log(chalk.bgBlue('Here is the list of notes:'))
     notes.forEach(note => {
-        console.log(chalk.blue(note.title))
+        console.log(chalk.blue(note.id, note.title))
     })
 }
 
-export default {
-    addNote, getNotes, printNotes
+const removeNote = async (id, owner) => {
+    const result = await Note.deleteOne({_id: id, owner})
+    console.log(chalk.red.inverse('Note not found'))
+     if(result.matchedCount === 0) {
+            throw new Error('No note delete')
+        }
+    
+}
+
+const replaceNote = async (noteData, owner) => {
+    const result =  await Note.updateOne({_id: noteData.id, owner}, {title: noteData.title})
+        if(result.matchedCount === 0) {
+            throw new Error('No note edit')
+        }
+}
+
+export {
+    addNote, getNotes, printNotes, removeNote, replaceNote
 }
