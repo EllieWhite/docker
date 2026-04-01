@@ -1,4 +1,5 @@
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 import chalk from 'chalk'
 import { dirname } from 'path';
 import { fileURLToPath } from 'url'
